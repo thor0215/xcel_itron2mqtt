@@ -14,41 +14,22 @@ from tenacity import retry, stop_after_attempt, before_sleep_log, wait_exponenti
 
 # Local imports
 from xcelEndpoint import xcelEndpoint
+from CCM8Adapter import CCM8Adapter
+from generateEndpointYaml import generateEndpointYaml
 
 IEEE_PREFIX = '{urn:ieee:std:2030.5:ns}'
-# Our target cipher is: ECDHE-ECDSA-AES128-CCM8
-CIPHERS = ('ECDHE')
 
 logger = logging.getLogger(__name__)
-
-# Create an adapter for our request to enable the non-standard cipher
-# From https://lukasa.co.uk/2017/02/Configuring_TLS_With_Requests/
-class CCM8Adapter(HTTPAdapter):
-    """
-    A TransportAdapter that re-enables ECDHE support in Requests.
-    Not really sure how much redundancy is actually required here
-    """
-    def init_poolmanager(self, *args, **kwargs):
-        kwargs['ssl_context'] = self.create_ssl_context()
-        return super(CCM8Adapter, self).init_poolmanager(*args, **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        kwargs['ssl_context'] = self.create_ssl_context()
-        return super(CCM8Adapter, self).proxy_manager_for(*args, **kwargs)
-
-    def create_ssl_context(self):
-        ssl_version=ssl.PROTOCOL_TLSv1_2
-        context = create_urllib3_context(ssl_version=ssl_version)
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_REQUIRED
-        context.set_ciphers(CIPHERS)
-        return context
 
 class xcelMeter():
 
     def __init__(self, name: str, ip_address: str, port: int, creds: Tuple[str, str]):
         self.name = name
         self.POLLING_RATE = 5.0
+        self.ip_address = ip_address
+        self.port = port
+        self.creds = creds
+
         # Base URL used to query the meter
         self.url = f'https://{ip_address}:{port}'
 
@@ -58,7 +39,7 @@ class xcelMeter():
         self.mqtt_client = self.setup_mqtt(self.mqtt_server_address, self.mqtt_port)
 
         # Create a new requests session based on the passed in ip address and port #
-        self.requests_session = self.setup_session(creds, ip_address)
+        self.requests_session = self.setup_session(self.creds, self.ip_address)
 
         # Set to uninitialized
         self.initalized = False
@@ -93,8 +74,12 @@ class xcelMeter():
         # The swVer will dictate which version of endpoints we use
         endpoints_file_ver = 'default' if str(self._swVer) != '3.2.39' else '3_2_39'
         # List to store our endpoint objects in
-        self.endpoints_list = self.load_endpoints(f'configs/endpoints_{endpoints_file_ver}.yaml')
-
+        #self.endpoints_list = self.load_endpoints(f'configs/endpoints_{endpoints_file_ver}.yaml')
+        self.endpointYaml = generateEndpointYaml(self.name, self.ip_address, self.port, self.creds)
+        self.endpointYaml.setup()
+        self.endpoints_list = self.endpointYaml.get_yaml()
+        print("YAML Template\n",yaml.dump(self.endpoints_list,sort_keys=False))
+        
         # create endpoints from list
         self.endpoints = self.create_endpoints(self.endpoints_list, self.device_info)
 

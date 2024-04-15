@@ -3,6 +3,7 @@ import logging
 from time import sleep
 from pathlib import Path
 from xcelMeter import xcelMeter
+from generateEndpointYaml import generateEndpointYaml
 from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
 
 INTEGRATION_NAME = "Xcel Itron 5"
@@ -80,6 +81,7 @@ if __name__ == '__main__':
     else:
         ip_address, port_num = mDNS_search_for_meter()
     creds = look_for_creds()
+    
     meter = xcelMeter(INTEGRATION_NAME, ip_address, port_num, creds)
     meter.setup()
 
