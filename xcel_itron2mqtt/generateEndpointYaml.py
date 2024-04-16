@@ -135,6 +135,8 @@ class generateEndpointYaml():
                     case 'ReadingTypeLink':
                         meter_endpoint_info_dict['MeterReading']['ReadingTypeLink'] = child.get('href')
 
+            meter_endpoint_info_dict['MeterReading']['Description'] = meter_endpoint_info_dict['MeterReading']['Description'].replace('TOU','Time-Of-Use')
+
             meter_endpoint_info_dict.update(self.get_meter_endpoint_type_details(meter_endpoint_info_dict['MeterReading']['ReadingTypeLink']))
             
             if self.is_endpoint_reading_type_supported(meter_endpoint_info_dict):
@@ -241,6 +243,7 @@ class generateEndpointYaml():
                     meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['device_class'] = 'power'
                     meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['unit_of_measurement'] = \
                         UomType(reading['ReadingType']['uomType']).name
+                    meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['state_class'] = 'measurement'
 
                 if reading['ReadingType']['kind'] == KindType.Energy.value:
                     meter_reading_yaml_dict[ reading['MeterReading']['Description'] ] = {}
@@ -270,6 +273,7 @@ class generateEndpointYaml():
                     meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['device_class'] = 'energy'
                     meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['unit_of_measurement'] = \
                         UomType(reading['ReadingType']['uomType']).name
+                    meter_reading_yaml_dict[ reading['MeterReading']['Description'] ]['tags']['value']['state_class'] = 'total_increasing'
 
                 meter_reading_yaml_list.append(
                         meter_reading_yaml_dict
@@ -318,6 +322,7 @@ class generateEndpointYaml():
         if  reading.get('timePeriod') and \
             reading['timePeriod'].get('duration') == 1 and \
             self.is_valid_unix_timestamp(reading['timePeriod'].get('start')) and \
+            reading.get('value') is not None and \
             reading.get('value') >= 0 :
 
             reading_supported = True
