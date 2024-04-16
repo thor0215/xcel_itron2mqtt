@@ -316,14 +316,11 @@ class generateEndpointYaml():
         reading_supported = False
         
         if  reading.get('timePeriod') and \
-            reading['timePeriod'].get('duration') and \
-            reading['timePeriod'].get('start') and \
-            reading.get('value') :
+            reading['timePeriod'].get('duration') == 1 and \
+            self.is_valid_unix_timestamp(reading['timePeriod'].get('start')) and \
+            reading.get('value') >= 0 :
 
-            if  reading['timePeriod']['duration'] == 1 and \
-                self.is_valid_unix_timestamp(reading['timePeriod']['start']) and \
-                reading['value'] >= 0:
-                    reading_supported = True
+            reading_supported = True
             
         return reading_supported
 
