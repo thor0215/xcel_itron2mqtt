@@ -78,7 +78,8 @@ class xcelMeter():
         self.endpointYaml = generateEndpointYaml(self.name, self.ip_address, self.port, self.creds)
         self.endpointYaml.setup()
         self.endpoints_list = self.endpointYaml.get_yaml()
-        print("YAML Template\n",yaml.dump(self.endpoints_list,sort_keys=False))
+        logging.debug(f"YAML Template:")
+        logging.debug(f"{yaml.dump(self.endpoints_list,sort_keys=False)}")
         
         # create endpoints from list
         self.endpoints = self.create_endpoints(self.endpoints_list, self.device_info)

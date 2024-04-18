@@ -9,3 +9,4 @@ certs
 __pycache__/
 *.py[cod]
 *$py.class
+xcel_itron2mqtt/runtest.sh

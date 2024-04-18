@@ -103,7 +103,7 @@ class xcelEndpoint():
         mqtt_friendly_name = self.name.replace(" ", "_")
         entity_type = payload.pop('entity_type')
         payload["state_topic"] = f'{self._mqtt_topic_prefix}{entity_type}/{mqtt_friendly_name}/{sensor_name}/state'
-        payload['name'] = f'{self.name} {sensor_name}'
+        payload['name'] = f'{self.name} {sensor_name}'.title()
         # Mouthful
         # Unique ID becomes the device name + class name + sensor name, all lower case, all underscores instead of spaces
         payload['unique_id'] = f"{self.device_info['device']['name']}_{self.name}_{sensor_name}".lower().replace(' ', '_')
@@ -128,6 +128,8 @@ class xcelEndpoint():
                 for val_items in v:
                     name, details = val_items.popitem()
                     sensor_name = f'{k}{name}'
+                    if f'{name}' == 'duration': sensor_name = 'Duration'
+                    if f'{name}' == 'start': sensor_name = 'Timestamp'
                     mqtt_topic, payload = self.create_config(sensor_name, details)
                     # Send MQTT payload
                     self.mqtt_publish(mqtt_topic, str(payload))
@@ -147,6 +149,8 @@ class xcelEndpoint():
         # Cycle through all the readings for the given sensor
         for k, v in reading.items():
             # Figure out which topic this reading needs to be sent to
+            if f'{k}' == 'timePeriodduration': k = 'Duration'
+            if f'{k}' == 'timePeriodstart': k = 'Timestamp'
             topic = self._sensor_state_topics[k]
             if topic not in mqtt_topic_message.keys():
                 mqtt_topic_message[topic] = {}
