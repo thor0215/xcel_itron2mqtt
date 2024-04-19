@@ -64,17 +64,15 @@ class xcelMeter():
                             "device": {
                                 "identifiers": [self._lfdi],
                                 "name": self.name,
-                                "model": self._mfid,
-                                "sw_version": self._swVer
+                                "model": "Gen5 Riva Meter",
+                                "manufacturer": "ITRON Inc.",
+                                "sw_version": self._swVer,
                                 }
                             }
         # Send homeassistant a new device config for the meter
         self.send_mqtt_config()
 
-        # The swVer will dictate which version of endpoints we use
-        endpoints_file_ver = 'default' if str(self._swVer) != '3.2.39' else '3_2_39'
         # List to store our endpoint objects in
-        #self.endpoints_list = self.load_endpoints(f'configs/endpoints_{endpoints_file_ver}.yaml')
         self.endpointYaml = generateEndpointYaml(self.name, self.ip_address, self.port, self.creds)
         self.endpointYaml.setup()
         self.endpoints_list = self.endpointYaml.get_yaml()
